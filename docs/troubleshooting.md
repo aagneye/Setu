@@ -1,5 +1,15 @@
 # Setu Troubleshooting
 
+For setup walkthroughs, see [setup-beginner.md](setup-beginner.md), [setup-twilio.md](setup-twilio.md), and [setup-supabase.md](setup-supabase.md).
+
+---
+
+## Login / signup fails
+
+1. Set `AUTH_SECRET` in `.env.local` (any random string)
+2. Run migration `supabase/migrations/006_app_users.sql` in Supabase SQL Editor
+3. Restart `npm run dev` after changing env vars
+
 ## WhatsApp webhook not firing
 
 1. Check Twilio sandbox join — both phones must send `join <code>`
