@@ -1,44 +1,24 @@
 import { NextResponse } from "next/server";
-import { getSupabaseAdmin } from "@/lib/supabase";
+import { getPOById } from "@/lib/db/purchase-orders";
+import { getUpdatesForPO } from "@/lib/db/po-updates";
+import { getGRNsForPO } from "@/lib/db/grns";
+import { getNudgesForPO } from "@/lib/db/nudges";
 
 export async function GET(
   _request: Request,
   { params }: { params: { id: string } }
 ) {
-  const supabase = getSupabaseAdmin();
+  const po = await getPOById(params.id);
 
-  const { data: po, error: poError } = await supabase
-    .from("purchase_orders")
-    .select("*, vendors(*)")
-    .eq("id", params.id)
-    .single();
-
-  if (poError) {
-    return NextResponse.json({ error: poError.message }, { status: 404 });
+  if (!po) {
+    return NextResponse.json({ error: "PO not found" }, { status: 404 });
   }
 
-  const [updates, grns, nudges] = await Promise.all([
-    supabase
-      .from("po_updates")
-      .select("*")
-      .eq("po_id", params.id)
-      .order("created_at", { ascending: true }),
-    supabase
-      .from("grns")
-      .select("*")
-      .eq("po_id", params.id)
-      .order("created_at", { ascending: false }),
-    supabase
-      .from("nudges")
-      .select("*")
-      .eq("po_id", params.id)
-      .order("sent_at", { ascending: false }),
+  const [po_updates, grns, nudges] = await Promise.all([
+    getUpdatesForPO(params.id),
+    getGRNsForPO(params.id),
+    getNudgesForPO(params.id),
   ]);
 
-  return NextResponse.json({
-    ...po,
-    po_updates: updates.data ?? [],
-    grns: grns.data ?? [],
-    nudges: nudges.data ?? [],
-  });
+  return NextResponse.json({ ...po, po_updates, grns, nudges });
 }
