@@ -20,12 +20,8 @@ export async function sendWhatsAppMessage(to: string, body: string) {
   });
 }
 
-export function parseTwilioWebhook(formData: FormData) {
-  return {
-    from: formData.get("From") as string,
-    body: (formData.get("Body") as string) ?? "",
-    numMedia: parseInt((formData.get("NumMedia") as string) ?? "0", 10),
-    mediaUrl: (formData.get("MediaUrl0") as string) ?? null,
-    mediaContentType: (formData.get("MediaContentType0") as string) ?? null,
-  };
-}
+export {
+  parseTwilioWebhook,
+  validateTwilioSignature,
+} from "@/lib/validators/twilio";
+export type { TwilioWebhookPayload } from "@/lib/validators/twilio";
