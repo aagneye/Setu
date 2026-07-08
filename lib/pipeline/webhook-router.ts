@@ -9,15 +9,32 @@ import { logPipelineEvent } from "@/lib/db/pipeline-events";
 import { PIPELINE_EVENTS } from "@/lib/constants";
 import { logger } from "@/lib/logger";
 import { isPipelineError } from "@/lib/errors";
-import { unknownVendorReply, emptyMessageReply, pipelineErrorReply } from "@/lib/messaging/replies";
-import type { TwilioWebhookPayload } from "@/lib/validators/twilio";
+import {
+  isMessageProcessed,
+  markMessageProcessed,
+} from "@/lib/webhook/idempotency";
+import {
+  unknownVendorReply,
+  emptyMessageReply,
+  pipelineErrorReply,
+} from "@/lib/messaging/replies";
 import type { PipelineResult } from "@/lib/pipeline/types";
+
+import type { TwilioWebhookPayload } from "@/lib/validators/twilio";
 
 export async function routeWebhook(
   payload: TwilioWebhookPayload
 ): Promise<PipelineResult> {
   const { from, body, numMedia, mediaUrl, mediaContentType, messageSid } =
     payload;
+
+  if (messageSid && (await isMessageProcessed(messageSid))) {
+    logger.info("Duplicate webhook skipped", {
+      pipeline: "webhook",
+      event: "idempotency_skip",
+    });
+    return { success: true, action: "duplicate_skipped" };
+  }
 
   await logPipelineEvent({
     event_type: PIPELINE_EVENTS.WEBHOOK_RECEIVED,
@@ -40,6 +57,11 @@ export async function routeWebhook(
 
   const openPOs = await getOpenPOsForVendor(vendor.id);
 
+  async function finish(result: PipelineResult): Promise<PipelineResult> {
+    if (messageSid) await markMessageProcessed(messageSid);
+    return result;
+  }
+
   try {
     if (numMedia > 0 && mediaUrl) {
       const { buffer } = await downloadTwilioMedia(
@@ -58,7 +80,7 @@ export async function routeWebhook(
           from
         );
         if (result.reply) await sendWhatsAppMessage(from, result.reply);
-        return result;
+        return finish(result);
       }
 
       if (mediaContentType?.startsWith("audio/")) {
@@ -70,19 +92,19 @@ export async function routeWebhook(
           mediaUrl
         );
         if (result.reply) await sendWhatsAppMessage(from, result.reply);
-        return result;
+        return finish(result);
       }
     }
 
     if (body.trim()) {
       const result = await handleTextMessage(openPOs, body, from);
       if (result.reply) await sendWhatsAppMessage(from, result.reply);
-      return result;
+      return finish(result);
     }
 
     const reply = emptyMessageReply();
     await sendWhatsAppMessage(from, reply);
-    return { success: false, action: "empty_message", reply };
+    return finish({ success: false, action: "empty_message", reply });
   } catch (err) {
     const message = isPipelineError(err) ? err.message : String(err);
     logger.error("Pipeline error", {
@@ -100,6 +122,6 @@ export async function routeWebhook(
 
     const reply = pipelineErrorReply();
     await sendWhatsAppMessage(from, reply);
-    return { success: false, action: "error", error: message, reply };
+    return finish({ success: false, action: "error", error: message, reply });
   }
 }
