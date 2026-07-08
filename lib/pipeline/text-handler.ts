@@ -7,6 +7,13 @@ import { logger } from "@/lib/logger";
 import { ExtractionError } from "@/lib/errors";
 import type { PurchaseOrder } from "@/lib/types";
 import type { PipelineResult } from "@/lib/pipeline/types";
+import {
+  confidenceLabel,
+  needsReview,
+  shouldAutoApply,
+} from "@/lib/pipeline/confidence";
+import { createAlert } from "@/lib/db/alerts";
+import { insertPOUpdate } from "@/lib/db/po-updates";
 
 export async function handleTextMessage(
   openPOs: PurchaseOrder[],
@@ -51,9 +58,36 @@ export async function handleTextMessage(
     };
   }
 
+  if (!shouldAutoApply(extraction) || needsReview(extraction)) {
+    await createAlert({
+      po_id: matchedPO.id,
+      alert_type: "low_confidence_update",
+      severity: extraction.confidence === "low" ? "critical" : "warning",
+      message: `${matchedPO.po_number} update requires review: ${confidenceLabel(extraction.confidence)}`,
+    });
+
+    await insertPOUpdate({
+      po_id: matchedPO.id,
+      source: "vendor_whatsapp",
+      raw_message: messageText,
+      extracted_json: extraction,
+      media_url: mediaUrl,
+    });
+
+    return {
+      success: false,
+      action: "manual_review_required",
+      po_number: matchedPO.po_number,
+      reply:
+        extraction.suggested_reply_to_vendor ||
+        "Update mila, team verify karke confirm karegi.",
+    };
+  }
+
   return applyTextExtraction(
     matchedPO.id,
     matchedPO.po_number,
+    matchedPO.status,
     messageText,
     extraction,
     mediaUrl

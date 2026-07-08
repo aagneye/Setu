@@ -6,15 +6,27 @@ import { PIPELINE_EVENTS } from "@/lib/constants";
 import { logPipelineEvent } from "@/lib/db/pipeline-events";
 import type { ExtractionResult, POStatus } from "@/lib/types";
 import type { PipelineResult } from "@/lib/pipeline/types";
+import { coerceStatus } from "@/lib/pipeline/status-transitions";
+import { createAlert } from "@/lib/db/alerts";
 
 export async function applyTextExtraction(
   poId: string,
   poNumber: string,
+  currentStatus: POStatus,
   messageText: string,
   extraction: ExtractionResult,
   mediaUrl?: string | null
 ): Promise<PipelineResult> {
-  const newStatus = validatePOStatus(extraction.new_status);
+  const proposedStatus = validatePOStatus(extraction.new_status);
+  const newStatus = coerceStatus(currentStatus, proposedStatus);
+  if (proposedStatus && !newStatus) {
+    await createAlert({
+      po_id: poId,
+      alert_type: "invalid_transition",
+      severity: "warning",
+      message: `${poNumber} requested invalid status transition ${currentStatus} -> ${proposedStatus}`,
+    });
+  }
   const poUpdates: { status?: POStatus; current_eta?: string } = {};
   if (newStatus) poUpdates.status = newStatus;
   if (extraction.new_eta) poUpdates.current_eta = extraction.new_eta;

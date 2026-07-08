@@ -19,6 +19,7 @@ import {
   pipelineErrorReply,
 } from "@/lib/messaging/replies";
 import type { PipelineResult } from "@/lib/pipeline/types";
+import { hasMedia, isAudioMime, isImageMime } from "@/lib/validators/webhook";
 
 import type { TwilioWebhookPayload } from "@/lib/validators/twilio";
 
@@ -63,14 +64,17 @@ export async function routeWebhook(
   }
 
   try {
-    if (numMedia > 0 && mediaUrl) {
+    if (hasMedia(numMedia, mediaUrl)) {
+      if (!mediaUrl) {
+        return finish({ success: false, action: "missing_media_url" });
+      }
       const { buffer } = await downloadTwilioMedia(
         mediaUrl,
         process.env.TWILIO_ACCOUNT_SID!,
         process.env.TWILIO_AUTH_TOKEN!
       );
 
-      if (mediaContentType?.startsWith("image/")) {
+      if (isImageMime(mediaContentType)) {
         const result = await handlePhotoMessage(
           openPOs,
           buffer,
@@ -83,11 +87,12 @@ export async function routeWebhook(
         return finish(result);
       }
 
-      if (mediaContentType?.startsWith("audio/")) {
+      if (isAudioMime(mediaContentType)) {
+        const audioType = mediaContentType ?? "audio/ogg";
         const result = await handleVoiceMessage(
           openPOs,
           buffer,
-          mediaContentType,
+          audioType,
           from,
           mediaUrl
         );

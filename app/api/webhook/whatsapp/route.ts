@@ -5,9 +5,19 @@ import {
   validateTwilioSignature,
 } from "@/lib/validators/twilio";
 import { logger } from "@/lib/logger";
+import { checkRateLimit } from "@/lib/rate-limit";
+import { twilioOk } from "@/lib/api/response";
 
 export async function POST(request: Request) {
   try {
+    const ip =
+      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+      "unknown";
+    if (!checkRateLimit(`webhook:${ip}`, 120, 60_000)) {
+      logger.warn("Webhook rate limited", { pipeline: "webhook", ip });
+      return twilioOk();
+    }
+
     const formData = await request.formData();
 
     if (process.env.NODE_ENV === "production") {
@@ -21,12 +31,12 @@ export async function POST(request: Request) {
     const payload = parseTwilioWebhook(formData);
     await routeWebhook(payload);
 
-    return new NextResponse("OK", { status: 200 });
+    return twilioOk();
   } catch (err) {
     logger.error("Webhook handler error", {
       pipeline: "webhook",
       error: String(err),
     });
-    return new NextResponse("OK", { status: 200 });
+    return twilioOk();
   }
 }
