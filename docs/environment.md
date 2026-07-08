@@ -24,6 +24,7 @@ cp .env.example .env.local
 | `TWILIO_WHATSAPP_NUMBER` | Webhook, agent | Twilio sandbox WhatsApp sender | Default: `whatsapp:+14155238886` |
 | `CRON_SECRET` | Agent nudge API | Random string protecting `/api/agent/nudge` | Generate any random string |
 | `NEXT_PUBLIC_CRON_SECRET` | Dashboard button | Same value as `CRON_SECRET` |
+| `AUTH_SECRET` | Login, signup | Random string for session signing — generate any secret |
 | `PM_WHATSAPP_NUMBER` | Digest sender | Optional — PM phone for daily digest via WhatsApp |
 | `SLACK_WEBHOOK_URL` | Escalation alerts | Optional — Slack incoming webhook for PM notifications |
 
