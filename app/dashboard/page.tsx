@@ -7,6 +7,9 @@ import { StatsBar } from "@/components/StatsBar";
 import { SearchBar } from "@/components/SearchBar";
 import { useStats } from "@/hooks/useStats";
 import { useAgent } from "@/hooks/useAgent";
+import { OverviewCards } from "@/components/dashboard/OverviewCards";
+import { RecentActivity } from "@/components/dashboard/RecentActivity";
+import { useDashboardOverview } from "@/hooks/useDashboardOverview";
 import { Button } from "@/components/ui/button";
 import { getSupabaseClient } from "@/lib/supabase";
 import type { PurchaseOrder } from "@/lib/types";
@@ -18,6 +21,7 @@ export default function DashboardPage() {
   const [escalatedPOs, setEscalatedPOs] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const { stats, loading: statsLoading } = useStats();
+  const { stats: overviewStats, events } = useDashboardOverview();
   const { running: triggering, result: agentResult, triggerNudge, triggerDigest } = useAgent();
 
   const fetchData = useCallback(async () => {
@@ -126,7 +130,11 @@ export default function DashboardPage() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-6">
+        <OverviewCards stats={overviewStats} />
         <StatsBar stats={stats} loading={statsLoading} />
+        <div className="mb-4">
+          <RecentActivity events={events} />
+        </div>
         <div className="mb-4">
           <SearchBar />
         </div>
