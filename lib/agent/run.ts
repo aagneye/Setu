@@ -4,7 +4,7 @@ import {
   shouldSendNudge,
 } from "@/lib/agent/stale-pos";
 import { sendNudge } from "@/lib/agent/nudge-sender";
-import { escalatePO } from "@/lib/agent/escalation";
+import { escalatePOWithAlert } from "@/lib/agent/escalation-with-alert";
 import { logger } from "@/lib/logger";
 import type { AgentRunResult } from "@/lib/pipeline/types";
 import type { Vendor } from "@/lib/types";
@@ -23,7 +23,7 @@ export async function runAgentLoop(): Promise<AgentRunResult> {
     if (!vendor?.phone) continue;
 
     if (shouldEscalate(stale)) {
-      const action = await escalatePO(stale);
+      const action = await escalatePOWithAlert(stale);
       actions.push(action);
       continue;
     }
