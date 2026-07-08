@@ -44,6 +44,8 @@ npm run dev
 
 Open [http://localhost:3000/dashboard](http://localhost:3000/dashboard).
 
+For PM/engineer access flow, open [http://localhost:3000/login](http://localhost:3000/login).
+
 Full setup: **[docs/setup.md](docs/setup.md)**
 
 ---
@@ -64,6 +66,7 @@ Copy `.env.example` → `.env.local` and fill in:
 | `TWILIO_WHATSAPP_NUMBER` | Twilio | Sandbox default: `whatsapp:+14155238886` |
 | `CRON_SECRET` | Self | Any random string (protects agent endpoint) |
 | `NEXT_PUBLIC_CRON_SECRET` | Self | Same value (dashboard trigger button) |
+| `AUTH_SECRET` | Self | Random secret for session signing (login/signup flow) |
 
 Details: **[docs/environment.md](docs/environment.md)**
 

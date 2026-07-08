@@ -50,6 +50,16 @@ cp .env.example .env.local
 
 Fill in all values. See [environment.md](environment.md) for details on each key.
 
+### Optional for custom auth
+
+If you use the built-in login/signup pages in this repo:
+
+```bash
+AUTH_SECRET=replace-with-random-secret
+```
+
+Google OAuth can be added later by you (recommended approach: Supabase Auth or NextAuth). The current UI already includes a Google auth placeholder in `/login` and `/signup`.
+
 Minimum required to run seed + dashboard:
 
 ```
@@ -157,6 +167,7 @@ Quick version:
 | Voice note | Send Hindi voice note | Transcribed, PO updated |
 | Delivery photo | Send photo of goods | GRN row created, status → delivered |
 | Agent nudge | Click "Trigger Agent Check" | Nudge sent to stale vendor PO |
+| PM login | Open `/login` and sign in | Dashboard opens with overview + history |
 
 ---
 
