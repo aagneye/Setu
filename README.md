@@ -46,7 +46,8 @@ Open [http://localhost:3000/dashboard](http://localhost:3000/dashboard).
 
 For PM/engineer access flow, open [http://localhost:3000/login](http://localhost:3000/login).
 
-Full setup: **[docs/setup.md](docs/setup.md)**
+Full setup: **[docs/setup.md](docs/setup.md)**  
+**Beginner / junior dev:** start with **[docs/setup-beginner.md](docs/setup-beginner.md)**
 
 ---
 
@@ -76,6 +77,10 @@ Details: **[docs/environment.md](docs/environment.md)**
 
 | Doc | Description |
 |-----|-------------|
+| [docs/setup-beginner.md](docs/setup-beginner.md) | **Start here** — beginner setup (junior devs) |
+| [docs/setup-supabase.md](docs/setup-supabase.md) | Database setup step-by-step |
+| [docs/setup-twilio.md](docs/setup-twilio.md) | WhatsApp / Twilio sandbox setup |
+| [docs/setup-local-demo.md](docs/setup-local-demo.md) | Rehearse full demo locally |
 | [docs/setup.md](docs/setup.md) | End-to-end setup from zero |
 | [docs/architecture.md](docs/architecture.md) | Server workflow and pipeline design |
 | [docs/api.md](docs/api.md) | API route reference |
