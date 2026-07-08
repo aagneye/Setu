@@ -9,7 +9,9 @@
     "lint": "next lint",
     "seed": "tsx scripts/seed.ts",
     "test:health": "tsx scripts/test-health.ts",
-    "test:agent": "tsx scripts/test-agent.ts"
+    "test:agent": "tsx scripts/test-agent.ts",
+    "export:pos": "tsx scripts/export-pos.ts",
+    "check:webhook": "tsx scripts/check-webhook.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
