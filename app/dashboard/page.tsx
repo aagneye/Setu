@@ -3,6 +3,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { AlertBanner } from "@/components/AlertBanner";
 import { KanbanBoard } from "@/components/KanbanBoard";
+import { StatsBar } from "@/components/StatsBar";
+import { SearchBar } from "@/components/SearchBar";
+import { useStats } from "@/hooks/useStats";
+import { useAgent } from "@/hooks/useAgent";
 import { Button } from "@/components/ui/button";
 import { getSupabaseClient } from "@/lib/supabase";
 import type { PurchaseOrder } from "@/lib/types";
@@ -13,8 +17,8 @@ export default function DashboardPage() {
   const [escalatedIds, setEscalatedIds] = useState<Set<string>>(new Set());
   const [escalatedPOs, setEscalatedPOs] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  const [triggering, setTriggering] = useState(false);
-  const [agentResult, setAgentResult] = useState<string | null>(null);
+  const { stats, loading: statsLoading } = useStats();
+  const { running: triggering, result: agentResult, triggerNudge, triggerDigest } = useAgent();
 
   const fetchData = useCallback(async () => {
     const supabase = getSupabaseClient();
@@ -77,27 +81,8 @@ export default function DashboardPage() {
   }, [fetchData]);
 
   async function triggerAgent() {
-    setTriggering(true);
-    setAgentResult(null);
-    try {
-      const secret = process.env.NEXT_PUBLIC_CRON_SECRET ?? "";
-      const url = secret
-        ? `/api/agent/nudge?secret=${secret}`
-        : "/api/agent/nudge";
-      const res = await fetch(url, { method: "POST" });
-      const data = await res.json();
-      const actions = data.actions?.length ?? 0;
-      setAgentResult(
-        actions > 0
-          ? `Agent ran: ${actions} action(s) taken`
-          : "Agent ran: no stale POs needed nudging"
-      );
-      await fetchData();
-    } catch {
-      setAgentResult("Agent check failed");
-    } finally {
-      setTriggering(false);
-    }
+    await triggerNudge();
+    await fetchData();
   }
 
   if (loading) {
@@ -125,6 +110,9 @@ export default function DashboardPage() {
               <RefreshCw className="h-4 w-4" />
               Refresh
             </Button>
+            <Button size="sm" variant="outline" onClick={triggerDigest} disabled={triggering}>
+              Digest
+            </Button>
             <Button size="sm" onClick={triggerAgent} disabled={triggering}>
               {triggering ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -138,6 +126,10 @@ export default function DashboardPage() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-6">
+        <StatsBar stats={stats} loading={statsLoading} />
+        <div className="mb-4">
+          <SearchBar />
+        </div>
         <AlertBanner pos={pos} escalatedPOs={escalatedPOs} />
         {agentResult && (
           <p className="text-sm text-primary mb-4 font-medium">{agentResult}</p>
