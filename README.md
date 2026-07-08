@@ -81,7 +81,8 @@ Details: **[docs/environment.md](docs/environment.md)**
 | [docs/folder-structure.md](docs/folder-structure.md) | Repo layout explained |
 | [docs/database.md](docs/database.md) | Schema, Supabase vs Neon |
 | [docs/contributing.md](docs/contributing.md) | How to contribute |
-| [SPEC.md](SPEC.md) | Original hackathon build spec |
+| [docs/PROJECT_BRIEF.md](docs/PROJECT_BRIEF.md) | Elaborate project brief, use cases, MVP scope |
+| [docs/render.md](docs/render.md) | Render deployment for MVP hosting |
 
 ---
 
@@ -94,6 +95,23 @@ npm run start    # run production build locally
 npm run seed     # load demo vendors + POs into Supabase
 npm run lint     # ESLint
 ```
+
+---
+
+## Server pipeline (what we own)
+
+```
+lib/pipeline/webhook-router.ts   ← every WhatsApp message
+lib/pipeline/text-handler.ts     ← text → Claude → PO update
+lib/pipeline/voice-handler.ts    ← voice → Deepgram → text
+lib/pipeline/photo-handler.ts    ← photo → Claude Vision → GRN
+lib/agent/run.ts                 ← autonomous nudge + escalation
+lib/db/*                         ← repository layer
+```
+
+Deploy to **Vercel** or **Render** — see [docs/render.md](docs/render.md).
+
+Health check: `GET /api/health/ready`
 
 ---
 
