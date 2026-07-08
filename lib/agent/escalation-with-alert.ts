@@ -1,6 +1,7 @@
 import { createEscalationAlert } from "@/lib/db/alerts";
 import { escalateNudge } from "@/lib/db/nudges";
 import { logPipelineEvent } from "@/lib/db/pipeline-events";
+import { notifySlack } from "@/lib/notifications/slack";
 import { PIPELINE_EVENTS } from "@/lib/constants";
 import { logger } from "@/lib/logger";
 import type { StalePO } from "@/lib/agent/stale-pos";
@@ -26,6 +27,10 @@ export async function escalatePOWithAlert(stale: StalePO): Promise<AgentAction> 
     pipeline: "agent",
     po_number: stale.po.po_number,
   });
+
+  await notifySlack(
+    `🚨 Setu escalation: ${stale.po.po_number} — vendor unresponsive after 2 nudges`
+  );
 
   return { po_number: stale.po.po_number, action: "escalated" };
 }
