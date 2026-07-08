@@ -80,7 +80,10 @@ Details: **[docs/environment.md](docs/environment.md)**
 | [docs/build.md](docs/build.md) | Dev, build, seed, and lint commands |
 | [docs/folder-structure.md](docs/folder-structure.md) | Repo layout explained |
 | [docs/database.md](docs/database.md) | Schema, Supabase vs Neon |
-| [docs/contributing.md](docs/contributing.md) | How to contribute |
+| [docs/pipeline-events.md](docs/pipeline-events.md) | Pipeline audit log reference |
+| [docs/demo-script.md](docs/demo-script.md) | 2-minute hackathon demo script |
+| [docs/troubleshooting.md](docs/troubleshooting.md) | Production troubleshooting |
+| [docs/roadmap.md](docs/roadmap.md) | Post-hackathon roadmap |
 | [docs/PROJECT_BRIEF.md](docs/PROJECT_BRIEF.md) | Elaborate project brief, use cases, MVP scope |
 | [docs/render.md](docs/render.md) | Render deployment for MVP hosting |
 
@@ -93,7 +96,8 @@ npm run dev      # local dev server (port 3000)
 npm run build    # production build
 npm run start    # run production build locally
 npm run seed     # load demo vendors + POs into Supabase
-npm run lint     # ESLint
+npm run export:pos   # export POs as JSON
+npm run check:webhook # verify webhook endpoint is live
 ```
 
 ---
