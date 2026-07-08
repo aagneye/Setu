@@ -173,6 +173,127 @@ Single PO with full detail: message thread, GRNs, nudge history.
 
 ---
 
+## `GET /api/health`
+
+Liveness and dependency check for hosting platforms.
+
+### Response
+
+```json
+{
+  "status": "ok",
+  "version": "1.0.0-mvp",
+  "timestamp": "2026-07-08T...",
+  "checks": {
+    "env": { "status": "ok" },
+    "database": { "status": "ok", "message": "Connected" },
+    "twilio": { "status": "ok" },
+    "anthropic": { "status": "ok" }
+  }
+}
+```
+
+---
+
+## `GET /api/health/ready`
+
+Readiness probe for Render load balancer. Returns `503` if DB unreachable or env incomplete.
+
+---
+
+## `POST /api/agent/digest`
+
+Generate daily procurement summary. Requires `CRON_SECRET` auth.
+
+### Response
+
+```json
+{
+  "digest": {
+    "total_open": 6,
+    "delayed_count": 2,
+    "critical_delayed": ["PO-1044 (PVC pipes...)"],
+    "message": "2 items delayed — 1 critical path risk"
+  },
+  "message": "📋 Setu Daily Digest\n..."
+}
+```
+
+---
+
+## `GET /api/vendors` · `POST /api/vendors`
+
+List all vendors or register a new vendor.
+
+### POST body
+
+```json
+{
+  "name": "Ramesh Rebar Supplies",
+  "phone": "+919876543210",
+  "trade": "Rebar",
+  "preferred_language": "hi"
+}
+```
+
+---
+
+## `GET /api/vendors/[id]`
+
+Fetch single vendor by UUID.
+
+---
+
+## `PATCH /api/po/[id]/status`
+
+Manual PO status update (PM override).
+
+### Body
+
+```json
+{ "status": "delayed", "current_eta": "2026-07-11" }
+```
+
+---
+
+## `GET /api/po/[id]/updates` · `POST /api/po/[id]/updates`
+
+List or manually insert PO update audit rows.
+
+---
+
+## `POST /api/webhook/whatsapp/status`
+
+Twilio delivery status callback. Logs message delivery status.
+
+---
+
+## `GET /api/pipeline/events`
+
+Pipeline audit log. Requires `CRON_SECRET` auth.
+
+### Query params
+
+| Param | Default | Description |
+|-------|---------|-------------|
+| `limit` | 50 | Max events to return |
+
+---
+
+## Pipeline modules (`lib/`)
+
+| Module | Role |
+|--------|------|
+| `lib/pipeline/webhook-router.ts` | Central message router |
+| `lib/pipeline/text-handler.ts` | Text → Claude → PO update |
+| `lib/pipeline/voice-handler.ts` | Voice → Deepgram → text handler |
+| `lib/pipeline/photo-handler.ts` | Photo → Claude Vision → GRN |
+| `lib/agent/run.ts` | Agent loop orchestrator |
+| `lib/db/*` | Database repository layer |
+| `lib/db/pipeline-events.ts` | Audit event logging |
+
+---
+
 ## Error responses
 
 | Status | When |
